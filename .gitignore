@@ -1,0 +1,17 @@
+# editor specific stuff
+\#.*
+*~
+*.swp*
+
+# binary files
+*.o
+*.elc
+
+# ignore fvwm created thumb-nails
+fvwm/.thumbs/*
+fvwm/icons/.thumbs/*
+fvwm/wallpapers/.thumbs/*
+
+# ignore all firefox customizations.
+dot-mozilla/*
+dot-icons/*

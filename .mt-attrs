@@ -1,0 +1,23 @@
+   file "bk-emacs/tests/content_conflict"
+execute "true"
+
+   file "bk-emacs/tests/create_conflict"
+execute "true"
+
+   file "dot-icons/firefox-document.png"
+execute "true"
+
+   file "dot-mozilla/firefox/wk44f5ax.default/extensions/{F33233B3-EDB1-41f4-8482-917AB190E647}/install.js"
+execute "true"
+
+   file "dot-mozilla/firefox/wk44f5ax.default/extensions/{F33233B3-EDB1-41f4-8482-917AB190E647}/install.rdf"
+execute "true"
+
+   file "dot-mozilla/firefox/wk44f5ax.default/prefs.js"
+execute "true"
+
+   file "fvwm/icons/cabinet_database.gif"
+execute "true"
+
+   file "xplanet/scripts/get-clouds-wrapper.sh"
+execute "true"

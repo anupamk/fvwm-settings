@@ -1,0 +1,234 @@
+// DepSatisfyDlg.cpp : implementation file
+//
+
+#include "stdafx.h"
+#include "InstallerApp.h"
+#include "DepSatisfyDlg.h"
+#include "ImageCache.h"
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+// CDepSatisfyDlg dialog
+
+
+CDepSatisfyDlg::CDepSatisfyDlg(CWnd* pParent /*=NULL*/)
+	: CDlgBase(CDepSatisfyDlg::IDD, pParent),
+	m_pPackages(NULL)
+{
+	//{{AFX_DATA_INIT(CDepSatisfyDlg)
+		// NOTE: the ClassWizard will add member initialization here
+	//}}AFX_DATA_INIT
+}
+
+
+void CDepSatisfyDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDlgBase::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CDepSatisfyDlg)
+	DDX_Control(pDX, IDC_PACKAGES, m_PackageTree);
+	//}}AFX_DATA_MAP
+}
+
+
+BEGIN_MESSAGE_MAP(CDepSatisfyDlg, CDlgBase)
+	//{{AFX_MSG_MAP(CDepSatisfyDlg)
+	ON_MESSAGE(CTreeCtrlEx::WM_TREECTRLEX_SELECT, OnTreeSelect)
+	ON_MESSAGE(CTreeCtrlEx::WM_TREECTRLEX_CHECKBOX, OnTreeCheckbox)
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CDepSatisfyDlg message handlers
+
+HTREEITEM CDepSatisfyDlg::AddPackage( pkgauto_package_t* package, HTREEITEM hParentItem, HTREEITEM hLastItem )
+{
+	int image = 0;
+	COLORREF item_color = ITEM_COLOR_NEW;
+	HTREEITEM hItem = NULL;
+
+	if ( hParentItem == NULL )
+		hParentItem = TVI_ROOT;
+	if ( hLastItem == NULL )
+		hLastItem = TVI_LAST;
+
+	CTreeCtrlEx::CheckState nState = CTreeCtrlEx::UNCHECKED;
+	if ( package->marked )
+		nState = CTreeCtrlEx::CHECKED_FULL;
+
+	switch ( package->status )
+	{
+		case PKGAUTO_PACKAGE_STATUS_ACTIVE:
+		{
+			item_color = ITEM_COLOR_ACTIVE;
+
+			switch( package->type )
+			{
+				case PKGAUTO_PACKAGE_TYPE_PACKAGE:
+					image = CImageCache::package;
+				break;
+
+				case PKGAUTO_PACKAGE_TYPE_BUNDLE:
+					image = CImageCache::bundle;
+				break;
+
+				default:
+				break;
+			}
+		}
+		break;
+
+		case PKGAUTO_PACKAGE_STATUS_INACTIVE:
+		{
+			item_color = ITEM_COLOR_INACTIVE;
+
+			switch( package->type )
+			{
+				case PKGAUTO_PACKAGE_TYPE_PACKAGE:
+					image = CImageCache::package_inactive;
+				break;
+
+				case PKGAUTO_PACKAGE_TYPE_BUNDLE:
+					image = CImageCache::bundle_inactive;
+				break;
+
+				default:
+				break;
+			}
+		}
+		break;
+		
+		case PKGAUTO_PACKAGE_STATUS_NEW:
+		{
+			item_color = ITEM_COLOR_NEW;
+
+			switch( package->type )
+			{
+				case PKGAUTO_PACKAGE_TYPE_PACKAGE:
+					image = CImageCache::package;
+				break;
+
+				case PKGAUTO_PACKAGE_TYPE_BUNDLE:
+					image = CImageCache::bundle;
+				break;
+
+				default:
+				break;
+			}
+		}
+		break;
+		
+		case PKGAUTO_PACKAGE_STATUS_UNAVAILABLE:
+		{
+			item_color = ITEM_COLOR_INACTIVE;
+
+			switch( package->type )
+			{
+				case PKGAUTO_PACKAGE_TYPE_PACKAGE:
+					image = CImageCache::package_inactive;
+				break;
+
+				case PKGAUTO_PACKAGE_TYPE_BUNDLE:
+					image = CImageCache::bundle_inactive;
+				break;
+
+				default:
+				break;
+			}
+		}
+		break;
+
+		default:
+		break;
+	}
+
+	if ( package->name != NULL )
+	{
+		char item_name[1025];
+		int len = 0;
+
+		len += _snprintf( &item_name[len], 1024 - len, "%s", package->name );
+
+		if ( package->size > 0 )
+		{
+			char size_str[26];
+			pkgauto_size_to_string( package->size, size_str, 25, 0 );
+			len += _snprintf( &item_name[len], 1024 - len, " (%s)", size_str );
+		}
+
+		hItem = m_PackageTree.InsertItem(item_name, image, image, hParentItem, hLastItem);
+		m_PackageTree.SetCheckState(hItem, nState);
+		m_PackageTree.SetItemData(hItem, (DWORD)package);
+	}
+
+ 	HTREEITEM hChildItem = NULL;
+	for (int i = 0; i < package->children.count; ++i )
+	{
+		pkgauto_package_t* child = (pkgauto_package_t*) package->children.items[i];
+		if ( child != NULL )
+			hChildItem = AddPackage( child, hItem, hChildItem );
+	}
+
+	return hItem;
+}
+
+BOOL CDepSatisfyDlg::OnInitDialog()
+{
+	CDlgBase::OnInitDialog();
+
+	CImageCache* pCache = CImageCache::GetImageCache();
+	m_PackageTree.SetImageList(&pCache->m_TreeImages, TVSIL_NORMAL);
+
+	// prevent redrawing until we're done updating the tree
+	m_PackageTree.SetRedraw(FALSE);
+	m_PackageTree.DeleteAllItems();
+
+	if (m_pPackages != NULL)
+		AddPackage( m_pPackages, NULL, NULL );
+
+	// redraw the tree
+	m_PackageTree.SetRedraw(TRUE);
+	m_PackageTree.Invalidate();
+	m_PackageTree.UpdateWindow();
+	
+	return TRUE;  // return TRUE unless you set the focus to a control
+	              // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+LRESULT CDepSatisfyDlg::OnTreeSelect(WPARAM wp, LPARAM lp)
+{
+	CTreeCtrlEx* pTree = (CTreeCtrlEx*) GetDlgItem(wp);
+	HTREEITEM hItem = (HTREEITEM) lp;
+	ASSERT(pTree == &m_PackageTree);
+	ASSERT(hItem != NULL);
+
+	return 0;
+}
+
+LRESULT CDepSatisfyDlg::OnTreeCheckbox(WPARAM wp, LPARAM lp)
+{
+	CTreeCtrlEx* pTree = (CTreeCtrlEx*) GetDlgItem(wp);
+	HTREEITEM hItem = (HTREEITEM) lp;
+	ASSERT(pTree == &m_PackageTree);
+	ASSERT(hItem != NULL);
+
+	CPkgAuto* pAuto = ((CInstallerApp*)AfxGetApp())->m_pAuto;
+	ASSERT(pAuto != NULL);
+
+	pkgauto_package_t* package = (pkgauto_package_t*) pTree->GetItemData(hItem);
+	if (package != NULL)
+	{
+		CTreeCtrlEx::CheckState state = CTreeCtrlEx::UNCHECKED;
+		pkgauto_action_mark_package(pAuto->plib, package, !(package->marked));
+		if (package->marked)
+			state = CTreeCtrlEx::CHECKED_FULL;
+		pTree->SetCheckState(hItem, state);
+	}
+
+	return 0;
+}
+
