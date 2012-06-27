@@ -11,6 +11,11 @@ SetEnv fvwm_wallpaper_dir	$[fvwm_wallpapers]
 SetEnv fvwm_image_path		$[fvwm_home]/wallpapers
 SetEnv fvwm_audio_path		/media/cd-collection/english
 
+#
+# is there a way to query resolution from within fvwm, and then do
+# this automagically ?  
+# ----------------------------------------------------------------
+
 # good for 1600x1200 resolution
 SetEnv fvwm_icon_pixels_1600    78
 SetEnv fvwm_pager_dim_1600      72
@@ -29,7 +34,9 @@ SetEnv fvwm_thumbnail_dim_1680  46
 # create windows with this offset from the pager
 SetEnv fvwm_window_offset       10
 
+# 
 # can we automate X-resolution detection ?
+# 
 SetEnv fvwm_icon_pixels         $[fvwm_icon_pixels_1680]
 SetEnv fvwm_pager_dim           $[fvwm_pager_dim_1680]
 SetEnv fvwm_thumbnail_dim       $[fvwm_thumbnail_dim_1680]
@@ -213,28 +220,6 @@ Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, Inde
 Style * MinOverlapPercentPlacement
 Style * MinOverlapPercentPlacementPenalties 2 5 1 2 0.5 50
 
-#####
-# My Vectors look like this
-#
-# +----------------------------------------------------------+
-# | .                                             ?  _  #  X |
-# +----------------------------------------------------------+
-# | 1                                             8  6  4  2 |
-# |                                                          |
-#                                                            |
-# 
-# When the Buttons are ActiveDown (Pressed), The shadow vector is not drawn.
-#
-# Note that some Title/Button Styles are destructive.
-#
-# Vectors are basically just a set of co-ordinates, each button is a grid of 100x100 points
-# (or you can use pixels..it's up to you), following each vector you must specify a line type:
-#
-#   @0 Shadow (sh)
-#   @1 Hilight (hi)
-#   @2 Background (bg)
-#   @3 Foreground (fg)
-#   @4 Invisible (just move the pointer, dont draw anything)
 #############################
 #   WindowDecoration
 ###############################
@@ -290,19 +275,14 @@ Style "*" HilightBorderColorset 4
 #
 # Use xwininfo or FvwmIdent module to find window Names, Classes, etc.
 #################
-#Style FvwmConsole Iconified
 Style FvwmPager   NoTitle, Sticky, WindowListSkip, StaysPut
 Style FvwmBanner  NoTitle
 Style XTerm       MiniIcon computer_x11.png
-Style Mrxvt       MiniIcon computer_x11.png
 Style gmrun       MiniIcon gears.png, GrabFocus, StaysOnTop, CenterPlacement
 Style gmrun       WindowListSkip, CirculateSkip, BorderWidth 3
 Style FvwmIdent   MiniIcon label_tag_version.png
 Style gcalctool   EWMHMiniIconOverride, MiniIcon calculator.png
 Style xchat-2     !FPFocusByProgram, NoFuncHint, NoDecorHint
-Style rxvt        WindowShadeShrinks
-Style Mulberry    MiniIcon mail.png
-Style Message     MiniIcon person_face_talking.png
 Style grip        EWMHMiniIconOverride, MiniIcon hardware_audio_cd.png
 Style xv          MiniIcon graphics_woman_panel.png
 Style Gvim        EWMHMiniIconOverride, MiniIcon gvim.png
